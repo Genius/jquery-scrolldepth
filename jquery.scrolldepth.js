@@ -1,6 +1,6 @@
 /*!
  * @preserve
- * jquery.scrolldepth.js | v0.9.3
+ * jquery.scrolldepth.js | v0.9.4
  * Copyright (c) 2016 Rob Flaherty (@robflaherty)
  * Licensed under the MIT and GPL licenses.
  */
@@ -27,6 +27,7 @@
     var defaults = {
       minHeight: 0,
       elements: [],
+      marks: {'750px' : 750, '1500px' : 1500},
       userTiming: true,
       nonInteraction: true,
       gaGlobal: false,
@@ -259,11 +260,6 @@
             winHeight = window.innerHeight ? window.innerHeight : $window.height(),
             scrollDistance = $window.scrollTop() + winHeight,
 
-            marks = {
-              '750px' : 750,
-              '1500px' : 1500
-            },
-
             // Timing
             timing = +new Date - startTime;
 
@@ -279,7 +275,7 @@
             checkElements(options.elements, scrollDistance, timing);
           }
 
-          checkMarks(marks, scrollDistance, timing);
+          checkMarks(options.marks, scrollDistance, timing);
         }, 500));
 
       }
