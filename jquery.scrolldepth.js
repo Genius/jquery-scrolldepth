@@ -27,9 +27,7 @@
     var defaults = {
       minHeight: 0,
       elements: [],
-      percentage: true,
       userTiming: true,
-      pixelDepth: true,
       nonInteraction: true,
       gaGlobal: false,
       gtmOverride: false
@@ -38,7 +36,6 @@
     var $window = $(window),
       cache = [],
       scrollEventBound = false,
-      lastPixelDepth = 0,
       universalGA,
       classicGA,
       gaGlobal,
@@ -98,11 +95,6 @@
 
           standardEventHandler({'event': 'ScrollDistance', 'eventCategory': 'Scroll Depth', 'eventAction': action, 'eventLabel': label, 'eventValue': 1, 'eventNonInteraction': options.nonInteraction});
 
-          if (options.pixelDepth && arguments.length > 2 && scrollDistance > lastPixelDepth) {
-            lastPixelDepth = scrollDistance;
-            standardEventHandler({'event': 'ScrollDistance', 'eventCategory': 'Scroll Depth', 'eventAction': 'Pixel Depth', 'eventLabel': rounded(scrollDistance), 'eventValue': 1, 'eventNonInteraction': options.nonInteraction});
-          }
-
           if (options.userTiming && arguments.length > 3) {
             standardEventHandler({'event': 'ScrollTiming', 'eventCategory': 'Scroll Depth', 'eventAction': action, 'eventLabel': label, 'eventTiming': timing});
           }
@@ -112,11 +104,6 @@
           if (universalGA) {
 
             window[gaGlobal]('send', 'event', 'Scroll Depth', action, label, 1, {'nonInteraction': options.nonInteraction});
-
-            if (options.pixelDepth && arguments.length > 2 && scrollDistance > lastPixelDepth) {
-              lastPixelDepth = scrollDistance;
-              window[gaGlobal]('send', 'event', 'Scroll Depth', 'Pixel Depth', rounded(scrollDistance), 1, {'nonInteraction': options.nonInteraction});
-            }
 
             if (options.userTiming && arguments.length > 3) {
               window[gaGlobal]('send', 'timing', 'Scroll Depth', action, timing, label);
@@ -128,11 +115,6 @@
 
             _gaq.push(['_trackEvent', 'Scroll Depth', action, label, 1, options.nonInteraction]);
 
-            if (options.pixelDepth && arguments.length > 2 && scrollDistance > lastPixelDepth) {
-              lastPixelDepth = scrollDistance;
-              _gaq.push(['_trackEvent', 'Scroll Depth', 'Pixel Depth', rounded(scrollDistance), 1, options.nonInteraction]);
-            }
-
             if (options.userTiming && arguments.length > 3) {
               _gaq.push(['_trackTiming', 'Scroll Depth', action, timing, label, 100]);
             }
@@ -143,21 +125,11 @@
 
       }
 
-      function calculateMarks(docHeight) {
-        return {
-          '25%' : parseInt(docHeight * 0.25, 10),
-          '50%' : parseInt(docHeight * 0.50, 10),
-          '75%' : parseInt(docHeight * 0.75, 10),
-          // Cushion to trigger 100% event in iOS
-          '100%': docHeight - 5
-        };
-      }
-
       function checkMarks(marks, scrollDistance, timing) {
         // Check each active mark
         $.each(marks, function(key, val) {
           if ( $.inArray(key, cache) === -1 && scrollDistance >= val ) {
-            sendEvent('Percentage', key, scrollDistance, timing);
+            sendEvent('Pixel Depth', key, scrollDistance, timing);
             cache.push(key);
           }
         });
@@ -190,7 +162,6 @@
       // Reset Scroll Depth with the originally initialized options
       $.scrollDepth.reset = function() {
         cache = [];
-        lastPixelDepth = 0;
         $window.off('scroll.scrollDepth');
         bindScrollDepth();
       };
@@ -288,14 +259,16 @@
             winHeight = window.innerHeight ? window.innerHeight : $window.height(),
             scrollDistance = $window.scrollTop() + winHeight,
 
-            // Recalculate percentage marks
-            marks = calculateMarks(docHeight),
+            marks = {
+              '750px' : 750,
+              '1500px' : 1500
+            },
 
             // Timing
             timing = +new Date - startTime;
 
           // If all marks already hit, unbind scroll event
-          if (cache.length >= options.elements.length + (options.percentage ? 4:0)) {
+          if (cache.length >= options.elements.length + 2) {
             $window.off('scroll.scrollDepth');
             scrollEventBound = false;
             return;
@@ -306,10 +279,7 @@
             checkElements(options.elements, scrollDistance, timing);
           }
 
-          // Check standard marks
-          if (options.percentage) {
-            checkMarks(marks, scrollDistance, timing);
-          }
+          checkMarks(marks, scrollDistance, timing);
         }, 500));
 
       }
