@@ -264,7 +264,7 @@
             timing = +new Date - startTime;
 
           // If all marks already hit, unbind scroll event
-          if (cache.length >= options.elements.length + 2) {
+          if (cache.length >= options.elements.length + options.marks.length) {
             $window.off('scroll.scrollDepth');
             scrollEventBound = false;
             return;
