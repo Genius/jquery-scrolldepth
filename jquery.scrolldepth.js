@@ -52,6 +52,8 @@
 
       options = $.extend({}, defaults, options);
 
+      cache = [];
+
       // Return early if document height is too small
       if ( $(document).height() < options.minHeight ) {
         return;
